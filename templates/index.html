@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>ETL Uploader</title>
+    <style>
+      body { font-family: sans-serif; background-color: #f4f4f4; color: #333; }
+      .container { max-width: 800px; margin: 50px auto; padding: 20px; background-color: #fff; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      h1, h2 { text-align: center; }
+      form { display: flex; flex-direction: column; margin-bottom: 20px; }
+      input[type=file] { margin-bottom: 20px; }
+      input[type=submit] { padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+      input[type=submit]:hover { background-color: #0056b3; }
+      .or-separator { text-align: center; margin: 20px 0; font-weight: bold; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 40px; }
+      th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
+      th { background-color: #6c757d; color: white; }
+      tr:nth-child(even) { background-color: #f2f2f2; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>ETL Workbench</h1>
+
+      <h2>Default Uncleaned Data (input.csv)</h2>
+      <div>
+        {{ default_csv_html|safe }}
+      </div>
+
+      <hr style="margin: 40px 0;">
+
+      <h2>Process Your Own File</h2>
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload and Run ETL">
+      </form>
+      
+      <div class="or-separator">OR</div>
+
+      <form action="/run_default_etl" method="post">
+        <input type="submit" value="Run ETL on Default input.csv">
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 import pandas as pd
+from database import load_to_staging, get_staging_data
 
 def standardize_column_names(df):
     """
@@ -7,69 +8,71 @@ def standardize_column_names(df):
     df.columns = [col.lower().replace(' ', '_') for col in df.columns]
     return df
 
-def clean_data(df):
+def clean_data(df, stats, initial_records_count):
     """
     Cleans the data by handling missing values and duplicates.
+    Updates the stats dictionary.
     """
-    print("Dropping duplicate rows...")
+    # Duplicates
+    initial_rows_before_dedupe = len(df)
     df.drop_duplicates(inplace=True)
+    stats['duplicates_dropped'] = initial_rows_before_dedupe - len(df)
+    
+    # Calculate Data Quality based on rows remaining after deduplication
+    records_after_deduplication = len(df)
+    stats['data_quality'] = (records_after_deduplication / initial_records_count) * 100 if initial_records_count > 0 else 0
 
-    # Convert 'value' to numeric, coercing errors to NaN
+    # Missing values - cast to python int
+    stats['nans_filled'] = int(df['value'].isna().sum())
     df['value'] = pd.to_numeric(df['value'], errors='coerce')
-
-    print("Handling missing values...")
     df['value'].fillna(0, inplace=True)
+    
     return df
 
 def transform_data(df):
     """
     Applies transformations to the data.
     """
-    print("Applying a basic transformation (value * 2)...")
     df['value'] = df['value'] * 2
     return df
 
-def main():
+def run_etl(input_file='input.csv'):
     """
     Main function to run the ETL process.
+    Returns the original dataframe, transformed dataframe, and summary statistics.
     """
-    # Extract
-    input_file = 'input.csv'
-    print(f"Reading data from {input_file}...")
-    df = pd.read_csv(input_file)
-    print("\nOriginal Data:")
-    print(df)
-    print("\nOriginal Data Types:")
-    print(df.dtypes)
+    # --- Extraction and Initial Stats ---
+    original_df = pd.read_csv(input_file)
+    initial_records_count = len(original_df)
+    stats = {
+        'records_processed': initial_records_count,
+        'duplicates_dropped': 0,
+        'nans_filled': 0,
+        'data_quality': 0 # Will be updated in clean_data
+    }
 
-    # Standardize column names
-    print("\nStandardizing column names...")
-    df = standardize_column_names(df.copy())
-    print("Data with Standardized Columns:")
-    print(df)
+    # --- Transformation ---
+    df = original_df.copy()
+    df = standardize_column_names(df)
+    df = clean_data(df, stats, initial_records_count) # Pass initial_records_count
+    transformed_df = transform_data(df.copy())
 
-    # Transform (Clean)
-    print("\nCleaning data...")
-    cleaned_df = clean_data(df.copy())
-    print("Cleaned Data:")
-    print(cleaned_df)
+    # cast to python int
+    stats['transformations'] = int(stats['duplicates_dropped'] + stats['nans_filled'])
 
-    # Transform (Apply transformations)
-    print("\nTransforming data...")
-    transformed_df = transform_data(cleaned_df.copy())
-    print("Transformed Data:")
-    print(transformed_df)
+    # --- Loading ---
+    transformed_df.to_csv('output.csv', index=False)
+    load_to_staging(transformed_df)
 
-    # Inspect final types
-    print("\nFinal Data Types:")
-    print(transformed_df.dtypes)
+    print("\nETL process completed successfully.")
+    
+    return original_df, transformed_df, stats
 
-
-    # Load
-    output_file = 'output.csv'
-    print(f"\nWriting cleaned and transformed data to {output_file}...")
-    transformed_df.to_csv(output_file, index=False)
-    print("Done.")
 
 if __name__ == "__main__":
-    main()
+    print("Running ETL process from command line...")
+    original_df, transformed_df, stats = run_etl()
+    print("\n--- Summary ---")
+    print(stats)
+    print("\n--- Final Staging Table ---")
+    print(get_staging_data())
