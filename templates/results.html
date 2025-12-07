@@ -466,7 +466,15 @@
   <body>
     <div class="container">
       <div class="header">
-        <div class="success-icon">✅</div>
+        <div class="success-icon">
+          {% if summary_stats.data_quality >= 99 %}
+            ✅
+          {% elif summary_stats.data_quality >= 90 %}
+            👍
+          {% else %}
+            🤔
+          {% endif %}
+        </div>
         <h1>ETL Pipeline Complete!</h1>
         <p>Your data has been successfully processed</p>
       </div>

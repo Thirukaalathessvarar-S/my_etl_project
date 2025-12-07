@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Processing Data...</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #70020F 0%, #9B0317 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: white;
+            text-align: center;
+        }
+        .loader-container {
+            transform: scale(1.5);
+        }
+        .loader {
+            border: 8px solid rgba(255, 255, 255, 0.2);
+            border-top: 8px solid white;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            font-size: 2em;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <div class="loader"></div>
+        <h1>Processing your data, please wait...</h1>
+    </div>
+    <script>
+        // Set a random delay between 1.5 and 4 seconds (1500ms - 4000ms)
+        const randomDelay = Math.random() * 2500 + 1500;
+        
+        setTimeout(() => {
+            window.location.href = "{{ url_for('results') }}";
+        }, randomDelay);
+    </script>
+</body>
+</html>

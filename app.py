@@ -1,4 +1,6 @@
 import os
+import random
+import time
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
@@ -69,7 +71,7 @@ def upload_file():
         session['transformed_data'] = styled_html
         session['summary_stats'] = summary_stats
         
-        return redirect(url_for('results'))
+        return redirect(url_for('loader'))
     return redirect(request.url)
 
 @app.route('/run_default_etl', methods=['POST'])
@@ -82,7 +84,11 @@ def run_default_etl():
     session['transformed_data'] = styled_html
     session['summary_stats'] = summary_stats
     
-    return redirect(url_for('results'))
+    return redirect(url_for('loader'))
+
+@app.route('/loader')
+def loader():
+    return render_template('loader.html')
 
 @app.route('/results')
 def results():
