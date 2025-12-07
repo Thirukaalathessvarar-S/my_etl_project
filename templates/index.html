@@ -3,44 +3,586 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>ETL Uploader</title>
+    <title>ETL Workbench - Data Pipeline Studio</title>
     <style>
-      body { font-family: sans-serif; background-color: #f4f4f4; color: #333; }
-      .container { max-width: 800px; margin: 50px auto; padding: 20px; background-color: #fff; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-      h1, h2 { text-align: center; }
-      form { display: flex; flex-direction: column; margin-bottom: 20px; }
-      input[type=file] { margin-bottom: 20px; }
-      input[type=submit] { padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-      input[type=submit]:hover { background-color: #0056b3; }
-      .or-separator { text-align: center; margin: 20px 0; font-weight: bold; }
-      table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 40px; }
-      th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
-      th { background-color: #6c757d; color: white; }
-      tr:nth-child(even) { background-color: #f2f2f2; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #70020F 0%, #9B0317 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -1000px 0;
+        }
+        100% {
+          background-position: 1000px 0;
+        }
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+        animation: fadeInDown 0.8s ease-out;
+      }
+
+      .header h1 {
+        font-size: 3.5em;
+        margin-bottom: 10px;
+        text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        font-weight: 800;
+        letter-spacing: -1px;
+      }
+
+      .header .subtitle {
+        font-size: 1.3em;
+        opacity: 0.95;
+        font-weight: 300;
+        margin-top: 10px;
+      }
+
+      .header .tagline {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        padding: 8px 20px;
+        border-radius: 20px;
+        margin-top: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+      }
+
+      .main-card {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        margin-bottom: 30px;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+      }
+
+      .section-title {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #70020F;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .section-title::before {
+        content: '';
+        width: 6px;
+        height: 35px;
+        background: linear-gradient(180deg, #70020F, #9B0317);
+        border-radius: 3px;
+      }
+
+      .upload-section {
+        background: linear-gradient(135deg, #FFDEE2 0%, #FFC9D1 100%);
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 30px;
+        border: 3px dashed #70020F;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .upload-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba(255,255,255,0.4),
+          transparent
+        );
+        animation: shimmer 3s infinite;
+      }
+
+      .upload-section:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(112, 2, 15, 0.3);
+        border-color: #9B0317;
+      }
+
+      .upload-area {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .upload-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+        animation: pulse 2s infinite;
+      }
+
+      .upload-area h3 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+        color: #70020F;
+      }
+
+      .upload-area p {
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .file-input-wrapper input[type=file] {
+        position: absolute;
+        left: -9999px;
+      }
+
+      .file-input-label {
+        display: block;
+        padding: 20px;
+        background: white;
+        border: 2px solid #70020F;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #70020F;
+        text-align: center;
+      }
+
+      .file-input-label:hover {
+        background: #70020F;
+        color: white;
+        transform: scale(1.02);
+      }
+
+      .file-name {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(112, 2, 15, 0.1);
+        border-radius: 8px;
+        color: #70020F;
+        font-weight: 600;
+        display: none;
+      }
+
+      .file-name.active {
+        display: block;
+      }
+
+      input[type=submit] {
+        padding: 18px 40px;
+        background: linear-gradient(135deg, #70020F 0%, #9B0317 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1.2em;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(112, 2, 15, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      input[type=submit]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(112, 2, 15, 0.6);
+      }
+
+      input[type=submit]:active {
+        transform: translateY(-1px);
+      }
+
+      .or-divider {
+        text-align: center;
+        margin: 30px 0;
+        position: relative;
+      }
+
+      .or-divider::before,
+      .or-divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 40%;
+        height: 2px;
+        background: linear-gradient(to right, transparent, #ddd, transparent);
+      }
+
+      .or-divider::before {
+        left: 0;
+      }
+
+      .or-divider::after {
+        right: 0;
+      }
+
+      .or-divider span {
+        background: white;
+        padding: 0 20px;
+        font-weight: 700;
+        color: #999;
+        font-size: 1.1em;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .default-action {
+        background: linear-gradient(135deg, #FFDEE2 0%, #FFB3BD 100%);
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .default-action h3 {
+        color: #70020F;
+        font-size: 1.5em;
+        margin-bottom: 15px;
+      }
+
+      .default-action p {
+        color: #70020F;
+        opacity: 0.8;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+      }
+
+      .default-action input[type=submit] {
+        background: white;
+        color: #70020F;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      }
+
+      .default-action input[type=submit]:hover {
+        background: #70020F;
+        color: white;
+        transform: translateY(-3px) scale(1.05);
+      }
+
+      .data-preview {
+        margin-top: 30px;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+      }
+
+      .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .preview-badge {
+        background: linear-gradient(135deg, #70020F, #9B0317);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 20px;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      }
+
+      th {
+        background: linear-gradient(135deg, #70020F, #9B0317);
+        color: white;
+        padding: 16px 12px;
+        text-align: left;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9em;
+      }
+
+      th:first-child {
+        border-top-left-radius: 12px;
+      }
+
+      th:last-child {
+        border-top-right-radius: 12px;
+      }
+
+      td {
+        padding: 14px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.3s ease;
+      }
+
+      tr:hover td {
+        background-color: rgba(255, 222, 226, 0.3);
+      }
+
+      tr:nth-child(even) td {
+        background-color: #f9fafb;
+      }
+
+      tr:nth-child(even):hover td {
+        background-color: rgba(255, 222, 226, 0.4);
+      }
+
+      tr:last-child td:first-child {
+        border-bottom-left-radius: 12px;
+      }
+
+      tr:last-child td:last-child {
+        border-bottom-right-radius: 12px;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+        animation: fadeInUp 0.8s ease-out 0.3s both;
+      }
+
+      .feature-card {
+        background: linear-gradient(135deg, #FFDEE2 0%, #FFC9D1 100%);
+        padding: 25px;
+        border-radius: 16px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: #70020F;
+        box-shadow: 0 10px 30px rgba(112, 2, 15, 0.2);
+      }
+
+      .feature-icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+      }
+
+      .feature-card h4 {
+        font-size: 1.2em;
+        color: #70020F;
+        margin-bottom: 10px;
+      }
+
+      .feature-card p {
+        color: #666;
+        font-size: 0.95em;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2.5em;
+        }
+
+        .main-card {
+          padding: 25px;
+        }
+
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>ETL Workbench</h1>
-
-      <h2>Default Uncleaned Data (input.csv)</h2>
-      <div>
-        {{ default_csv_html|safe }}
+      <div class="header">
+        <h1>ETL Workbench</h1>
+        <p class="subtitle">Transform Your Data with Power & Elegance</p>
+        <span class="tagline">Extract • Transform • Load</span>
       </div>
 
-      <hr style="margin: 40px 0;">
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h4>Lightning Fast</h4>
+          <p>Process data in milliseconds with optimized pipelines</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h4>Precise Cleaning</h4>
+          <p>Intelligent data cleansing and transformation</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h4>Clear Insights</h4>
+          <p>Visualize every step of your ETL process</p>
+        </div>
+      </div>
 
-      <h2>Process Your Own File</h2>
-      <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Upload and Run ETL">
-      </form>
-      
-      <div class="or-separator">OR</div>
+      <div class="main-card">
+        <div class="section-title">
+          📁 Upload Your Data
+        </div>
 
-      <form action="/run_default_etl" method="post">
-        <input type="submit" value="Run ETL on Default input.csv">
-      </form>
+        <div class="upload-section">
+          <div class="upload-area">
+            <div class="upload-icon">☁️</div>
+            <h3>Drag & Drop Your CSV File</h3>
+            <p>or click below to browse</p>
+          </div>
+
+          <form action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+            <div class="file-input-wrapper">
+              <input type="file" name="file" id="fileInput" accept=".csv" required>
+              <label for="fileInput" class="file-input-label">
+                📎 Choose CSV File
+              </label>
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <input type="submit" value="🚀 Process Data">
+          </form>
+        </div>
+
+        <div class="or-divider">
+          <span>OR</span>
+        </div>
+
+        <div class="default-action">
+          <h3>🎯 Quick Start Demo</h3>
+          <p>Try our pre-loaded sample dataset</p>
+          <form action="/run_default_etl" method="post">
+            <input type="submit" value="▶️ Run Demo ETL">
+          </form>
+        </div>
+      </div>
+
+      <div class="main-card data-preview">
+        <div class="preview-header">
+          <div class="section-title" style="margin-bottom: 0;">
+            Demo Dataset Preview
+          </div>
+          <span class="preview-badge">input.csv</span>
+        </div>
+        <div>
+          {{ default_csv_html|safe }}
+        </div>
+      </div>
     </div>
+
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      const fileName = document.getElementById('fileName');
+      const uploadForm = document.getElementById('uploadForm');
+
+      fileInput.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          fileName.textContent = '📄 Selected: ' + this.files[0].name;
+          fileName.classList.add('active');
+        }
+      });
+
+      // Drag and drop functionality
+      const uploadSection = document.querySelector('.upload-section');
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadSection.addEventListener(eventName, preventDefaults, false);
+      });
+
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadSection.addEventListener(eventName, highlight, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadSection.addEventListener(eventName, unhighlight, false);
+      });
+
+      function highlight() {
+        uploadSection.style.borderColor = '#9B0317';
+        uploadSection.style.transform = 'scale(1.02)';
+      }
+
+      function unhighlight() {
+        uploadSection.style.borderColor = '#70020F';
+        uploadSection.style.transform = 'scale(1)';
+      }
+
+      uploadSection.addEventListener('drop', handleDrop, false);
+
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files && files[0]) {
+          fileInput.files = files;
+          fileName.textContent = '📄 Selected: ' + files[0].name;
+          fileName.classList.add('active');
+        }
+      }
+    </script>
   </body>
 </html>
